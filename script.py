@@ -19,17 +19,27 @@ from draw import *
   with the name being used.
   ==================== """
 def first_pass( commands ):
-
+    var = 0
+    fra = 0
+    bas = 0
     for command in commands:
         if command['op'] == 'basename':
             if command['args'] is not None:
                 name = command['args'][0]
+                bas = 1
         elif command['op'] == 'frames':
             if command['args'] is not None:
-                num_frames = int(command['args'][0]) 
+                num_frames = int(command['args'][0])
             else:
                 num_frames = 1
-
+            fra = 1
+        elif command['op'] == 'vary':
+            var = 1
+    if (var == 1 and fra == 0): #if vary is found but not frames
+        return
+    if (fra == 1 and bas == 0): #if frames is found but not basename
+        name = "Basic"
+        print( "Hello, my name Basic")  
     return (name, num_frames)
     
 """======== second_pass( commands ) ==========
@@ -50,9 +60,17 @@ def first_pass( commands ):
   appropirate value.
   ===================="""
 def second_pass( commands, num_frames ):
-    frames = [ {} for i in range(num_frames) ]
+    knobs = [ {} for i in range(num_frames) ]
+    for i in range(num_frames):
+        pass
+    for command in commands:
+        pass
+        #if command['op'] == 'vary':
+         #   knobs[0] = knobs[knobs-1]
 
-    return frames
+    print knobs
+    
+    return knobs
 
 
 def run(filename):
