@@ -60,17 +60,24 @@ def first_pass( commands ):
   appropirate value.
   ===================="""
 def second_pass( commands, num_frames ):
-    knobs = [ {} for i in range(num_frames) ]
+    frames = [ {} for i in range(num_frames) ]
     for i in range(num_frames):
         pass
     for command in commands:
-        pass
-        #if command['op'] == 'vary':
-         #   knobs[0] = knobs[knobs-1]
+        op = command['op']
+        args = command['args']
+        if op == 'vary':
+            num0 = (args[3]-args[2])/(args[1]-args[0])
+            num = (args[3]-args[2])/(args[1]-args[0])
+            for i in range(int(args[1]-args[0])):
+                #deletes previous key 
+                frames[i].pop(command['knob'], None)
+                #adds new key
+                frames[i].update( {command['knob']:num0})
+                num0 = num0 + num
 
-    print knobs
-    
-    return knobs
+    print frames
+    return frames
 
 
 def run(filename):
