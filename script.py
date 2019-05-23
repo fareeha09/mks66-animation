@@ -67,16 +67,18 @@ def second_pass( commands, num_frames ):
         op = command['op']
         args = command['args']
         if op == 'vary':
-            num0 = (args[3]-args[2])/(args[1]-args[0])
+            num0 = args[2]
             num = (args[3]-args[2])/(args[1]-args[0])
-            for i in range(int(args[1]-args[0])):
+            print num
+            for i in range(int(args[1]-args[0])+1):
                 #deletes previous key 
-                frames[i].pop(command['knob'], None)
+                frames[int(args[0]+i)].pop(command['knob'], None)
                 #adds new key
-                frames[i].update( {command['knob']:num0})
+                frames[int(args[0]+i)].update( {command['knob']:num0})
                 num0 = num0 + num
-
-    print frames
+    for i in range(len(frames)):
+        print i
+        print frames[i]
     return frames
 
 
