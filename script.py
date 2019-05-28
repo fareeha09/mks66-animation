@@ -22,21 +22,25 @@ def first_pass( commands ):
     var = 0
     fra = 0
     bas = 0
+	
     for command in commands:
+	
         if command['op'] == 'basename':
             if command['args'] is not None:
                 name = command['args'][0]
                 bas = 1
+				
         elif command['op'] == 'frames':
             if command['args'] is not None:
                 num_frames = int(command['args'][0])
             else:
                 num_frames = 1
             fra = 1
+			
         elif command['op'] == 'vary':
             var = 1
     if (var == 1 and fra == 0): #if vary is found but not frames
-        return
+        quit()
     if (fra == 1 and bas == 0): #if frames is found but not basename
         name = "Basic"
         print( "Hello, my name Basic")  
@@ -61,24 +65,36 @@ def first_pass( commands ):
   ===================="""
 def second_pass( commands, num_frames ):
     frames = [ {} for i in range(num_frames) ]
-    for i in range(num_frames):
-        pass
+	
+    #for i in range(num_frames):
+    #    pass
     for command in commands:
         op = command['op']
         args = command['args']
+		
         if op == 'vary':
+
+            start = int(args[0])
+            end = int(args[1])
+		
             num0 = args[2]
             num = (args[3]-args[2])/(args[1]-args[0])
-            print num
-            for i in range(int(args[1]-args[0])+1):
-                #deletes previous key 
-                frames[int(args[0]+i)].pop(command['knob'], None)
+            
+            while start <= end:
+				#print start
+				frames[start][command['knob']] = num0
+				num0 = num0 + num
+				start+=1
+				#deletes previous key 
+                ##frames[int(args[0]+i)].pop(command['knob'], None)
                 #adds new key
-                frames[int(args[0]+i)].update( {command['knob']:num0})
-                num0 = num0 + num
-    for i in range(len(frames)):
-        print i
-        print frames[i]
+                ##frames[int(args[0]+i)].update( {command['knob']:num0})
+                ##num0 = num0 + num
+    
+	#for i in range(len(frames)):
+	#	print i
+	#	print frames[i]
+    
     return frames
 
 
@@ -117,6 +133,13 @@ def run(filename):
     (name, num_frames) = first_pass(commands)
     frames = second_pass(commands, num_frames)
 
+    tmp = new_matrix()
+    ident( tmp )
+    step_3d = 100
+    consts = ''
+    coords = []
+    coords1 = []
+    
     for fr in range(num_frames):
         tmp = new_matrix()
         ident( tmp )
@@ -125,50 +148,38 @@ def run(filename):
         screen = new_screen()
         zbuffer = new_zbuffer()
         tmp = []
-        step_3d = 100
-        consts = ''
-        coords = []
-        coords1 = []
-
+		
         #loops through commands
         for command in commands:
-            print command
+            #print command
             c = command['op']
             args = command['args']
-            knob_value = 1
-
+            knob_value = 1			
+			
             if c == 'box':
                 if command['constants']:
                     reflect = command['constants']
-                    add_box(tmp,
-                                args[0], args[1], args[2],
-                                args[3], args[4], args[5])
-                    matrix_mult( stack[-1], tmp )
-                    draw_polygons(tmp, screen, zbuffer, view, ambient, light,
-                                      symbols, reflect)
-                    tmp = []
-                    reflect = '.white'
+                add_box(tmp, args[0], args[1], args[2], args[3], args[4], args[5])
+                matrix_mult( stack[-1], tmp )
+                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+                tmp = []
+                reflect = '.white'
             elif c == 'sphere':
                 if command['constants']:
                     reflect = command['constants']
-                    add_sphere(tmp,
-                                   args[0], args[1], args[2], args[3], step_3d)
-                    matrix_mult( stack[-1], tmp )
-                    draw_polygons(tmp, screen, zbuffer, view, ambient, light,
-                                      symbols, reflect)
-                    tmp = []
-                    reflect = '.white'
+                add_sphere(tmp, args[0], args[1], args[2], args[3], step_3d)
+                matrix_mult( stack[-1], tmp )
+                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+                tmp = []
+                reflect = '.white'
             elif c == 'torus':
                 if command['constants']:
                     reflect = command['constants']
-                    add_torus(tmp,
-                                  args[0], args[1], args[2], args[3], args[4],
-                                  step_3d)
-                    matrix_mult( stack[-1], tmp )
-                    draw_polygons(tmp, screen, zbuffer, view, ambient, light,
-                                      symbols, reflect)
-                    tmp = []
-                    reflect = '.white'
+                add_torus(tmp, args[0], args[1], args[2], args[3], args[4], step_3d)
+                matrix_mult( stack[-1], tmp )
+                draw_polygons(tmp, screen, zbuffer, view, ambient, light, symbols, reflect)
+                tmp = []
+                reflect = '.white'
             elif c == 'line':
                 add_edge(tmp,
                              args[0], args[1], args[2], args[3], args[4],
@@ -177,17 +188,23 @@ def run(filename):
                 draw_lines(tmp, screen, zbuffer, color)
                 tmp = []
             elif c == 'move':
-                tmp = make_translate(args[0], args[1], args[2])
+                if command['knob'] is not None:
+                    knob_value = frames[fr][command['knob']]			
+                tmp = make_translate(args[0]*knob_value, args[1]*knob_value, args[2]*knob_value)
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'scale':
-                tmp = make_scale(args[0], args[1], args[2])
+                if command['knob'] is not None:
+                    knob_value = frames[fr][command['knob']]				
+                tmp = make_scale(args[0]*knob_value, args[1]*knob_value, args[2]*knob_value)
                 matrix_mult(stack[-1], tmp)
                 stack[-1] = [x[:] for x in tmp]
                 tmp = []
             elif c == 'rotate':
-                theta = args[1] * (math.pi/180)
+                if command['knob'] is not None:
+                    knob_value = frames[fr][command['knob']]
+                theta = args[1] * (math.pi/180) * knob_value
                 if args[0] == 'x':
                     tmp = make_rotX(theta)
                 elif args[0] == 'y':
@@ -212,5 +229,8 @@ def run(filename):
             elif c == 'vary':
                 pass
         # end operation loop
-        save_extension(screen, name+'0')
+		n = format(fr, "03")
+        save_extension(screen, "anim/" + name + n)
+		
+        make_animation(name)
         
